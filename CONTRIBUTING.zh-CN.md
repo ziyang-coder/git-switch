@@ -17,7 +17,7 @@
 ## 开发环境
 
 ```bash
-git clone https://github.com/CodeMonkeyJust/git-switch.git
+git clone https://github.com/ziyang-coder/git-switch.git
 cd git-switch
 
 node --version   # 必须 >= 22.6

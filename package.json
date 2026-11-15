@@ -63,15 +63,15 @@
   ],
   "license": "MIT",
   "author": {
-    "name": "CodeMonkeyJust",
-    "url": "https://github.com/CodeMonkeyJust"
+    "name": "ziyang-coder",
+    "url": "https://github.com/ziyang-coder"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CodeMonkeyJust/git-switch.git"
+    "url": "git+https://github.com/ziyang-coder/git-switch.git"
   },
   "bugs": {
-    "url": "https://github.com/CodeMonkeyJust/git-switch/issues"
+    "url": "https://github.com/ziyang-coder/git-switch/issues"
   },
-  "homepage": "https://github.com/CodeMonkeyJust/git-switch#readme"
+  "homepage": "https://github.com/ziyang-coder/git-switch#readme"
 }

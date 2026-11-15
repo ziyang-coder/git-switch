@@ -47,6 +47,37 @@ check('has a description', typeof pkg.description === 'string' && pkg.descriptio
 check('has a licence', typeof pkg.license === 'string' && pkg.license !== '', String(pkg.license));
 check('has a repository', typeof pkg.repository?.url === 'string', JSON.stringify(pkg.repository));
 check('repository url has no credentials', !/@[^/]+\//.test(pkg.repository?.url ?? ''));
+
+// `gs version` prints this URL and the npm page links to it, so a stale value is
+// user-visible. Compare against the remote the code is actually pushed to.
+let remoteUrl = '';
+try {
+  remoteUrl = run('git', ['remote', 'get-url', 'origin']).trim();
+} catch {
+  /* no remote: nothing to compare */
+}
+if (remoteUrl !== '') {
+  /**
+   * Reduce a git URL to `owner/repo`.
+   *
+   * The remote may be an SSH alias (`git@github:owner/repo.git`, where `github` is
+   * a Host entry in ~/.ssh/config) or an https URL; only the trailing two path
+   * segments identify the repository in both.
+   */
+  const ownerRepo = (url) => {
+    const cleaned = url
+      .replace(/^git\+/, '')
+      .replace(/\.git$/, '')
+      .replace(/\/+$/, '');
+    const afterHost = cleaned.replace(/^[a-z]+:\/\/[^/]+\//i, '').replace(/^git@[^:]+:/, '');
+    return afterHost.toLowerCase();
+  };
+  check(
+    'repository url matches git remote origin',
+    ownerRepo(pkg.repository?.url ?? '') === ownerRepo(remoteUrl),
+    `package.json says ${pkg.repository?.url}, origin is ${remoteUrl}`,
+  );
+}
 check('declares a node engine', typeof pkg.engines?.node === 'string', JSON.stringify(pkg.engines));
 check('bin points at the built launcher', pkg.bin?.gs === 'dist/gs.mjs', JSON.stringify(pkg.bin));
 

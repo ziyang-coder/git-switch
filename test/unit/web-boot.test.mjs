@@ -27,9 +27,9 @@ const ROUTES = {
   '/api/version': {
     version: '0.1.0+29.g4f3a3bf',
     name: 'git-switch',
-    author: 'CodeMonkeyJust',
+    author: 'ziyang-coder',
     license: 'MIT',
-    repository: 'https://github.com/CodeMonkeyJust/git-switch',
+    repository: 'https://github.com/ziyang-coder/git-switch',
     commit: '4f3a3bf',
     builtAt: '2026-01-01',
     channel: 'release',
@@ -322,7 +322,7 @@ test('a real repository URL becomes a safe link', async () => {
     );
 
     const link = findByTag(findById(dom, 'about-panel'), 'a')[0];
-    assert.equal(link.getAttribute('href'), 'https://github.com/CodeMonkeyJust/git-switch');
+    assert.equal(link.getAttribute('href'), 'https://github.com/ziyang-coder/git-switch');
     assert.equal(link.getAttribute('target'), '_blank');
     assert.equal(link.getAttribute('rel'), 'noopener noreferrer');
   } finally {

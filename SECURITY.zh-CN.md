@@ -13,7 +13,7 @@
 安全问题请**不要开公开 issue**。
 
 通过 GitHub Security Advisories 私下报告：
-<https://github.com/CodeMonkeyJust/git-switch/security/advisories/new>
+<https://github.com/ziyang-coder/git-switch/security/advisories/new>
 
 请附上复现步骤与受影响版本。我们争取在 7 天内响应。
 

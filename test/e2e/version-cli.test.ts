@@ -45,7 +45,7 @@ test('gs version --short prints only the version', async () => {
 test('gs version shows the author and the licence', async () => {
   const result = await gs(['version', '--no-color']);
   assert.equal(result.code, 0);
-  assert.match(result.stdout, /CodeMonkeyJust/);
+  assert.match(result.stdout, /ziyang-coder/);
   assert.match(result.stdout, /MIT/);
 
   const lines = result.stdout.trim().split('\n');

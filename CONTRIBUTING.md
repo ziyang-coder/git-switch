@@ -19,7 +19,7 @@ Thanks for taking the time to contribute.
 ## Development setup
 
 ```bash
-git clone https://github.com/CodeMonkeyJust/git-switch.git
+git clone https://github.com/ziyang-coder/git-switch.git
 cd git-switch
 
 node --version   # must be >= 22.6

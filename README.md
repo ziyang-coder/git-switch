@@ -212,9 +212,9 @@ a precise answer:
 $ gs version
 0.1.0+27.gd5e0ebe
 · channel    release
-· author     CodeMonkeyJust
+· author     ziyang-coder
 · license    MIT
-· repo       https://github.com/CodeMonkeyJust/git-switch
+· repo       https://github.com/ziyang-coder/git-switch
 · commit     d5e0ebe
 · built      2026-11-15T01:39:34.835Z
 ```

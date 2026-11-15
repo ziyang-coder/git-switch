@@ -13,7 +13,7 @@
 Please **do not open a public issue** for security problems.
 
 Report privately via GitHub Security Advisories:
-<https://github.com/CodeMonkeyJust/git-switch/security/advisories/new>
+<https://github.com/ziyang-coder/git-switch/security/advisories/new>
 
 Include reproduction steps and the affected version. We aim to respond within
 7 days.

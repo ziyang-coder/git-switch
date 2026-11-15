@@ -192,9 +192,9 @@ gs apply    # 写入托管块（自动备份）
 $ gs version
 0.1.0+27.gd5e0ebe
 · 类型        发布版
-· 作者        CodeMonkeyJust
+· 作者        ziyang-coder
 · 许可证       MIT
-· 仓库        https://github.com/CodeMonkeyJust/git-switch
+· 仓库        https://github.com/ziyang-coder/git-switch
 · 提交        d5e0ebe
 · 构建时间      2026-11-15T01:39:34.835Z
 ```
