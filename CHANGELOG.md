@@ -5,7 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.1] - 2026-11-15
+
+### Fixed
+
+- **`includeIf "gitdir:"` rules now match through a symbolic link.** git compares
+  the pattern against the repository's *resolved* path. On macOS every temporary
+  directory is `/var/folders/…`, a symlink to `/private/var/folders/…`, so a rule
+  written through the link never matched: `includeIf` silently did nothing and the
+  global identity won every repository. `realCasePath` resolves the path before
+  aligning casing; a directory that does not exist yet still falls back to the
+  literal path, so rules for future checkouts keep working.
+- **`gs version` reports the author, licence and repository, and each build names
+  its commit.** The version carries SemVer build metadata — `0.1.1+42.gabc1234` —
+  plus `.dirty` when the tree had uncommitted changes. `gs --version` and
+  `gs version --short` still print the bare line; `--json` emits everything.
+
+### Added
+
+- **The package is publishable to npm.** It is now named `@zhulij/git-switch`
+  (the unscoped `git-switch` is taken by an unrelated project), declares
+  `publishConfig` with public access against the official registry, and ships only
+  `dist/` plus the docs. `npm run prepublish:verify` runs 30 checks — package
+  identity, zero runtime dependencies, no `.ts` in the tarball, no `src/` or
+  `test/`, and it installs the tarball into a throw-away prefix and runs
+  `gs version` — before anything reaches the registry.
+- [docs/publishing.md](docs/publishing.md) and its Chinese counterpart document the
+  release procedure, including the two traps this machine has: the default registry
+  is a read-only mirror, and version numbers can never be reused.
+- **Bilingual CLI and GUI (English / Simplified Chinese)**, driven by one catalogue.
+  Language precedence is `--lang` → `GS_LANG` → the OS locale → English, and the
+  GUI has a picker in the header.
+- **`gs add [dir] --identity <name>`** binds a directory to an identity from the
+  CLI, sharing its implementation with the GUI rule editor.
+- **The GUI covers every CLI command** — keys (list, generate, copy, rename,
+  restore), identities (add, edit, delete), rules, preview, diagnostics, snapshots
+  and first-run setup — and shows the running build behind an About menu.
+- **Editing an identity keeps the site fields the form does not show**, so
+  `sshHostName` (GitHub over `ssh.github.com:443`) is no longer dropped on save.
+
+### Changed
+
+- **Rule matching uses the longest matching directory**, as the schema always
+  documented, instead of the first rule in array order.
+- **Forms are grouped and labelled**: identity → key → site, directory → identity,
+  with every control carrying a visible label and required fields marked.
 
 ### Added
 

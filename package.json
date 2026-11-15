@@ -1,6 +1,6 @@
 {
   "name": "@zhulij/git-switch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Multi-identity Git & SSH config manager: map directories to identities, generate includeIf rules and managed SSH config blocks, diagnose auth issues, and migrate everything to a new computer.",
   "type": "module",
   "bin": {
