@@ -1,0 +1,416 @@
+# gs — 多 Git 身份与 SSH 配置管理器
+
+[![npm version](https://img.shields.io/npm/v/@zhulij/git-switch?logo=npm&color=cb3837)](https://www.npmjs.com/package/@zhulij/git-switch)
+[![install](https://img.shields.io/badge/install-npm%20i%20--g%20%40zhulij%2Fgit--switch-cb3837?logo=npm)](https://www.npmjs.com/package/@zhulij/git-switch)
+[![Node](https://img.shields.io/badge/node-%3E%3D22.6-brightgreen)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Runtime dependencies](https://img.shields.io/badge/runtime%20deps-0-success)](package.json)
+
+**一条命令安装：**
+
+```bash
+npm install -g @zhulij/git-switch
+gs init
+```
+
+在一台电脑上管理**多个 Git 账号**，告别配置互相打架。
+
+如果你用个人密钥推 GitHub、用另一把推 Gitee、再用第三把推公司 Gitea，
+而 `~/.gitconfig` 和 `~/.ssh/config` 总是互相干扰——`gs` 把它们变成
+**声明式、可移植、可审查**的配置。
+
+[English](README.md)
+
+---
+
+## 它解决什么问题
+
+多账号 Git 环境通常在三个地方出问题：
+
+| 症状 | 根因 | `gs` 的解法 |
+|---|---|---|
+| 某个站点 `Permission denied (publickey)` | SSH 没有按站点指定密钥，试了错的那把 | 每个身份生成独立 `Host` 块，带 `IdentitiesOnly yes` |
+| 提交邮箱总是错的 | 全局 `user.email` 渗进所有仓库 | 目录 → 身份规则，生成 `includeIf` |
+| 换新电脑要重配几小时 | 配置散落在各处 | 可移植快照 + 一条命令导入 |
+
+---
+
+## 核心特性
+
+- **目录 → 身份映射** —— 声明式规则，生成 `gitdir:` 形式的 `includeIf`
+- **托管块** —— 只改 `# >>> gs:managed >>>` 标记内，块外逐字节保留
+- **SSH 密钥路由** —— 每个站点一个 `Host` 别名 + `IdentitiesOnly yes`，永不提交错误的密钥
+- **默认安全** —— 原子写入、时间戳备份、`apply` 幂等
+- **并发保护** —— 计划生成后被他人改动的文件拒绝覆盖
+- **绝不存秘密** —— `profiles.yaml` 校验会拒绝密码、令牌、私钥
+- **零运行时依赖** —— 纯 Node，无需 `node_modules`
+- **中英双语** —— CLI 与图形界面均自动跟随系统语言
+
+---
+
+## 快速开始
+
+从 npm 安装——其他人就是这样用的：
+
+```bash
+npm install -g @zhulij/git-switch
+gs init
+```
+
+在开发 `gs` 本身？三种运行源码的方式，任选其一：
+
+```bash
+# 1. 从源码运行：Node 直接执行 TypeScript（无需构建）
+node src/cli.ts init
+
+# 2. 全局安装当前目录（npm 会执行 prepare，自动编译 dist/）
+npm install -g .
+gs init
+
+# 3. 先构建一次，再用启动器
+npm install && npm run build && node dist/gs.mjs init
+```
+
+然后：
+
+```bash
+gs diff     # 预览所有变更
+gs apply    # 写入托管块（自动备份）
+gs list     # 查看当前目录归属哪个身份
+```
+
+> `dist/` 里存放的是**编译后的 JavaScript**，不是 TypeScript 源码：Node 拒绝为
+> `node_modules` 内的文件剥离类型，所以直接发布 `.ts` 文件安装后将无法运行。
+> TypeScript 仅作为开发依赖，发布包依然零运行时依赖。
+
+`gs init` 会读取你的机器并给出建议配置：
+
+```
+$ gs init
+i 探测结果
+·   git 身份        Alex Chen <alex@example.com>
+·   SSH 主机        3
+·   仓库            4
+i 建议的身份
+·   github       Alex Chen <alex@example.com>  → ssh.github.com
+·   company      Alex Chen <alex@example.com>  → git.example.com
+·   gitee        Alex Chen <alex@example.com>  → gitee.com
+i 建议的目录规则
+·   ~/code/github   →  github
+·   ~/code/gitee    →  gitee
+·   ~/code/company  →  company
+! gitee.com：暂时没有可用的 SSH 密钥，请在 profiles.yaml 中为该身份设置 sshKey
+✓ 已写入 ~/.config/gs/profiles.yaml
+· 下一步：gs diff   （预览）   然后   gs apply
+```
+
+配置位于 `~/.config/gs/profiles.yaml`，按需修改后应用：
+
+```yaml
+schemaVersion: 1
+identities:
+  work:
+    user:
+      name: Alex Chen
+      email: alex@company.example
+    sshKey: id_ed25519
+    sites:
+      - host: git.company.example
+        port: 9092
+        alias: work
+  personal:
+    user:
+      name: alexchen
+      email: alex@personal.example
+    sshKey: id_ed25519_github
+    sites:
+      - host: github.com
+        port: 443
+        sshHostName: ssh.github.com    # SSH 端点与主机不同时填写
+        alias: gh
+
+rules:
+  - dir: ~/code/company
+    identity: work
+  - dir: ~/code/github
+    identity: personal
+
+settings:
+  backupKeep: 20
+```
+
+> **关于 `sshHostName`**：`host` 是 Git 主机名（出现在 `git@github.com:...` 里），
+> `sshHostName` 是实际拨号的 SSH 端点。GitHub 要通过 `ssh.github.com:443` 访问 SSH
+> 时才需要它。两者填反会导致认证成功但传输时断开。
+
+然后：
+
+```bash
+gs diff     # 预览所有变更
+gs apply    # 写入托管块（自动备份）
+```
+
+---
+
+## 命令
+
+| 命令 | 作用 |
+|---|---|
+| `gs init [--root <dir>] [--force]` | 探测 SSH 主机与仓库，生成初始配置 |
+| `gs list` | 查看身份、目录规则、当前目录归属，以及全局身份 |
+| `gs add [dir] --identity <name>` | 把某个目录（默认当前目录）绑定到指定身份 |
+| `gs diff` | 预览所有变更 |
+| `gs apply [--dry-run] [--force]` | 写入 `~/.gitconfig` 与 `~/.ssh/config` 的托管块 |
+| `gs doctor [--online]` | 诊断密钥、SSH 配置、当前目录身份 |
+| `gs gui [--port N] [--no-open]` | 本地图形界面（仅监听 `127.0.0.1`） |
+| `gs key list` | 列出 SSH 密钥的指纹及使用它的身份 |
+| `gs key gen <name>` | 生成 ed25519 密钥对，公钥自动复制到剪贴板 |
+| `gs key copy <name>` | 复制公钥到剪贴板 |
+| `gs key restore <snapshot> [--force]` | 把快照中的密钥写回 `~/.ssh` |
+| `gs snapshot export <file> [--with-keys] [--force]` | 导出可移植快照 |
+| `gs snapshot import <file> [--remap OLD=NEW] [--force]` | 在另一台机器上恢复配置 |
+
+全局选项：`--home <dir>`（使用备用 home 目录）、`--json`、`--no-color`、`--lang <en|zh-CN>`。
+
+退出码：`0` 成功 · `1` 警告 · `2` 错误。
+
+用法错误——未知或拼错的选项（如 `--dryrun`）、缺值选项后面紧跟了另一个选项、命令不接受的多余位置参数——一律算错误：退出码 `2`，并指出是哪个选项。未知选项绝不会被静默忽略，因为曾经 `gs apply --dryrun` 会**真的应用**用户只想预览的变更。`--port` / `--idle-timeout` 取值非法同样按用法错误处理，而不是抛异常崩溃。
+
+### 输出、颜色与 `--json`
+
+只有当标准输出是终端时才使用颜色。输出被管道或重定向时自动关闭，`--no-color` 与 [`NO_COLOR`](https://no-color.org) 环境变量（设为任意非空值）也会关闭；`FORCE_COLOR` 可覆盖终端检测。这样 `gs list | grep` 拿到的内容不含转义序列。
+
+`--json` 在标准输出上只打印一份机器可读的 JSON，不掺杂任何横幅、进度行或 ANSI 转义。命令失败时以非零码退出；对于已经走到产出结果阶段的失败路径，仍会输出一份描述失败原因的 JSON 文档（`{"errors": [...]}`），而不是让 stdout 空着。若在任何结果产生之前就失败了——profile 不存在、`profiles.yaml` 格式错误、未知选项——则以退出码 `2` 在 stderr 说明原因，此时 stdout 为空，绝不会是写到一半的片段。
+
+错误信息只打印一行可操作的说明，不打印堆栈；报告问题时设置 `GS_DEBUG=1` 可附带堆栈。
+
+### `gs version`
+
+每次编译的产物都记录了产生它的提交，「这是哪个版本」因此有精确答案：
+
+```
+$ gs version
+0.1.0+27.gd5e0ebe
+· 类型        发布版
+· 作者        CodeMonkeyJust
+· 许可证       MIT
+· 仓库        https://github.com/CodeMonkeyJust/git-switch
+· 提交        d5e0ebe
+· 构建时间      2026-11-15T01:39:34.835Z
+```
+
+后缀是 SemVer 的**构建元数据**：`0.1.0+27.gd5e0ebe` 表示历史中第 27 个提交、
+哈希 `d5e0ebe`。构建时若工作区有未提交改动，会追加 `.dirty`。
+**同一个提交每次编译结果相同**，构建可复现——时间戳放在 `builtAt` 里，不进版本号。
+
+脚本可用 `gs --version` 或 `gs version --short` 只取那一行，`gs version --json`
+输出完整结构。直接从源码运行（未经构建）会显示 `0.1.0+dev`，如实说明这不是发布构建。
+
+图形界面显示同一份信息：顶栏有一个版本标签（点击可展开作者、许可证、仓库与构建时间），
+数据来自 `GET /api/version`。
+
+### 把当前目录绑定到身份
+
+最常见的改动是「这个目录属于那个账号」。在你所在的目录直接执行即可：
+
+```bash
+cd ~/code/github/my-project
+gs add . --identity personal     # 已将 ~/code/github/my-project 加入身份 personal
+gs add . --identity work --force # 改归属：该目录已属于别人，必须加 --force
+gs add . --identity personal --dry-run   # 只报告，不写入
+```
+
+`gs` 不会静默改写已属于另一个身份的目录，也会拒绝不存在的身份名。
+规则要执行 `gs apply` 之后才生效。
+
+### 迁移到新电脑
+
+```bash
+# 旧机器
+gs key list                                   # 确认每个身份用的是哪把密钥
+gs snapshot export backup.gsnap --with-keys   # 含私钥，整体加密
+
+# 新机器
+gs snapshot import backup.gsnap --remap ~/code=/home/me/code
+gs doctor                                     # 确认还缺什么
+gs apply
+```
+
+注意事项：
+
+- 不加 `--with-keys` 时快照**不含任何密钥材料**；密钥应在每台机器上单独生成
+  （更安全：一台机器一把钥匙）。
+- 加 `--with-keys` 时整个快照用 scrypt + AES-256-GCM 和你设定的口令
+  （或 `GS_PASSPHRASE`）加密。口令错误会明确失败，且不写入任何内容。
+- 快照里的私钥**绝不会**被自动写入 `~/.ssh`。
+- `--remap` 在目录结构不同时改写规则，只匹配完整路径段
+  （`~/code` 不会误伤 `~/codex`）。
+- 快照只包含 `gs` 托管的 `~/.ssh/config` 块，不含你自己的配置。
+
+### `gs gui`
+
+八个页面的本地 Web 界面，顺序遵循配置的依赖链：
+
+| 页面 | 作用 |
+|---|---|
+| 总览 | 身份与站点一览，并显示**全局身份**（可在此修改） |
+| 密钥 | 列出密钥、复制公钥、生成新密钥、**重命名**、从快照恢复 |
+| 身份 | 新增、**编辑**、删除身份（含 `SSH 主机名` 等字段） |
+| 规则 | 目录 → 身份映射，带服务端目录选择器 |
+| 变更预览 | 唯一会写文件的页面，永远先展示 diff |
+| 诊断 | `gs doctor` 的图形化结果，可复跑，可加 `--online` |
+| 迁移 | 快照导出与导入 |
+| 初始化 | 首次使用的两步向导 |
+
+```bash
+gs gui          # 打印 http://127.0.0.1:<port>/#token=… 并打开浏览器
+```
+
+界面是纯 JavaScript，无构建步骤、无框架，与 CLI 跑在同一个零依赖 Node 进程里。
+
+**安全设计**：
+
+| 控制 | 原因 |
+|---|---|
+| 只绑定 `127.0.0.1` | 永远无法从网络访问 |
+| 每进程随机口令 | 每个 API 请求必须携带 `x-gs-token` |
+| 校验 `Host` 头 | 抵御 DNS 重绑定 |
+| 校验 `Origin` | 拒绝跨站请求 |
+| 无 CORS 头 | 浏览器无法跨源读取响应 |
+| 严格 CSP + `no-store` | 无内联脚本，不缓存敏感内容 |
+| 目录浏览限定在允许的根目录内，拒绝 `..` | 选择器无法逃出 home |
+| 快照导出/导入路径限定在 home 目录内 | 请求无法读写 home 之外的文件 |
+| 每次 home 的配置写入串行化 | 两个重叠的编辑不会丢掉其中一个 |
+
+界面**永远先出计划再写入**：预览 → 展示 diff → 确认 → 应用。
+
+**空间是哪个？** 用 `--home` 启动时，界面顶部会显示醒目的**沙箱提示**，明确说明
+改动不会影响真实的 `~/.ssh` 与 `~/.gitconfig`。
+
+### `gs doctor` 能查出什么
+
+```
+$ gs doctor
+✗ ~/.ssh/id_ed25519_missing 不存在
+·    被 work 引用；git push/pull 会报 "no such identity"
+·    修复：ssh-keygen -t ed25519 -C "<email>" -f "~/.ssh/id_ed25519_missing"
+! work：未配置 SSH 密钥
+✓ ~/.ssh/id_ed25519_github 存在
+✓ ~/.ssh/config 中存在托管块
+✓ 当前身份：alex@personal.example
+! 未进行连通性探测
+·    加 --online 可执行真实的 ssh 握手
+```
+
+它把错误排在前面，遇到损坏的密钥也绝不抛出异常，并为每项给出可直接执行的修复命令。
+加上 `--online` 会额外执行真实的 `ssh -T` 握手验证。
+
+---
+
+## 工作原理
+
+`gs` **不拦截** `git`。它是一个**生成器**：`apply` 之后，你照常使用原生的 `git` 和 `ssh`。
+
+```
+profiles.yaml
+      │
+      │  gs apply
+      ▼
+~/.gitconfig                    (includeIf 块)
+~/.config/gs/identities/*.gitconfig
+~/.ssh/config                   (Host 块)
+      │
+      ▼
+   git & ssh                    原封不动
+```
+
+生成的 `~/.gitconfig` 块：
+
+```ini
+# >>> gs:managed >>>
+[includeIf "gitdir:~/code/company/"]
+	path = ~/.config/gs/identities/work.gitconfig
+[includeIf "gitdir:~/code/github/"]
+	path = ~/.config/gs/identities/personal.gitconfig
+# <<< gs:managed <<<
+```
+
+> **重要**：`includeIf "gitdir:..."` 只在 Git 解析仓库时生效。
+> 因此规则目录下必须包含 Git 仓库，映射才会起作用——这恰好也是你实际的工作方式。
+
+> **全局身份**：没有匹配规则的目录会回退到 `~/.gitconfig` 的 `user.name`/`user.email`。
+> 这个值**不在** `gs` 托管块内，`gs list` 和界面总览都会明确显示它，避免个人项目
+> 误用公司邮箱提交。
+
+---
+
+## 安全模型
+
+| 属性 | 保证 |
+|---|---|
+| 块外内容 | 逐字节保留，包含 CRLF 换行 |
+| 备份 | 每次写入前生成带时间戳的备份 |
+| 幂等 | 配置无变化时，第二次 `apply` 不写入任何文件 |
+| 并发 | 计划生成后被修改的文件拒绝覆盖（`--force` 可覆盖） |
+| 手工改动 | 托管块内出现 `gs` 未生成的行时阻止 `apply`；`--force` 覆盖之 |
+| 目标不可读 | 单个文件不可读只产生该文件的错误，其余文件照常计划与写入 |
+| 标记 | 重复或残缺标记直接报错，绝不猜测 |
+| 秘密 | `profiles.yaml` 不允许出现密码、令牌、私钥 |
+| 配置错误 | 报错时给出行号或字段路径，绝不静默忽略；界面仍可用并可一键修复 |
+| 写入失败 | 按文件报告真实目标名与原因；其余文件照常写入；不残留临时文件 |
+| 界面写操作 | 身份/规则/快照的改动只写 `profiles.yaml`，必须经「变更预览」确认才写入系统配置 |
+
+---
+
+## 技术选择
+
+| 选择 | 原因 |
+|---|---|
+| 零运行时依赖 | 可移植：发布包没有依赖树 |
+| Node ≥22.6 原生类型剥离 | 开发时无需构建步骤 |
+| 发布构建用 `tsc` | Node 禁止在 `node_modules` 内剥离类型 |
+| 手写 YAML 子集 | `profiles.yaml` 只需要有文档的子集，不需要完整解析器 |
+| 界面用纯 JS + Web Components | 无打包器、无框架，约 30 KB 源码 |
+| 生成器而非 `git` 包装 | `gs apply` 之后，原生 `git` 直接可用 |
+| 词表驱动双语 | 一份文案表同时服务 CLI 与界面，缺失项回退英文 |
+
+---
+
+## 环境要求
+
+- Node.js ≥ 22.6（使用原生 TypeScript 类型剥离）
+- Git 2.36+
+
+支持 Windows / macOS / Linux。
+
+---
+
+## 开发
+
+```bash
+npm install           # 仅开发依赖（typescript、@types/node）
+npm test              # 单元测试 + 端到端测试
+npm run typecheck     # tsc --noEmit
+npm run build         # 编译到 dist/ 用于发布
+```
+
+所有测试都在**临时 home 目录**中运行，绝不触碰你真实的
+`~/.gitconfig` 与 `~/.ssh/config`。
+
+工作流参见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+---
+
+## 路线图
+
+- [x] M1 —— 托管块，`init` / `apply` / `diff` / `list`
+- [x] M2 —— `doctor` 诊断（密钥、SSH 配置、身份解析）
+- [x] M3 —— `gs gui`（本地界面，零依赖）
+- [x] M4 —— 密钥管理、加密快照、`export` / `import`
+- [x] M5 —— 界面与 CLI 功能对齐、中英双语、错误自愈
+
+---
+
+## 许可证
+
+MIT

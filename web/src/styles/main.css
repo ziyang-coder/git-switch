@@ -1,0 +1,335 @@
+:root {
+  color-scheme: light dark;
+  --fg: #1f2328;
+  --bg: #ffffff;
+  --muted: #656d76;
+  --border: #d0d7de;
+  --accent: #0969da;
+  --ok: #1a7f37;
+  --warn: #9a6700;
+  --err: #cf222e;
+  --panel: #f6f8fa;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: #e6edf3;
+    --bg: #0d1117;
+    --muted: #8d96a0;
+    --border: #30363d;
+    --accent: #4493f8;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --err: #f85149;
+    --panel: #161b22;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+.brand { font-weight: 700; font-family: var(--mono); font-size: 16px; }
+.tabs { display: flex; gap: 4px; }
+.tab {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+}
+.tab:hover { background: var(--panel); color: var(--fg); }
+.tab[aria-selected="true"] {
+  color: var(--fg);
+  background: var(--panel);
+  border-color: var(--border);
+  font-weight: 600;
+}
+/*
+ * Right-hand group order: language picker -> About menu -> status.
+ * Only the first element claims the free space, so the three stay together and
+ * the tabs keep their natural width.
+ */
+.lang-picker {
+  margin-left: auto;
+  flex: none;
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+.status { color: var(--muted); font-size: 13px; }
+.lang-picker + .menu + .status { margin-left: 4px; }
+
+/* the home banner stays above the active view */
+.home-banner:empty { display: none; }
+.home-banner .notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+.home-banner .notice.error { border-width: 2px; }
+.home-banner .dismiss {
+  flex: none;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+/* a broken profile is shown above every screen instead of blanking them */
+.profile-error:empty { display: none; }
+.profile-error { margin-bottom: 8px; }
+.profile-error .notice {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+
+h2 { font-size: 18px; margin: 0 0 16px; }
+h3 { font-size: 14px; margin: 24px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: var(--bg);
+}
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+.row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.row:last-child { border-bottom: none; }
+
+/*
+ * A flex child defaults to min-width:auto, so it refuses to shrink below its
+ * content width. Combined with overflow-wrap:anywhere that made long paths wrap
+ * one character per line. min-width:0 lets the path shrink and ellipsize instead.
+ */
+.path {
+  font-family: var(--mono);
+  font-size: 13px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* controls inside a .row keep their natural width instead of filling it */
+.row > select.input,
+.row > button { flex: 0 0 auto; }
+.row > select.input { width: auto; min-width: 140px; max-width: 220px; }
+
+/* inside a labelled field the control always fills the field */
+.field > .input { width: 100%; }
+
+select, button {
+  font: inherit;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+button { cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.danger { color: var(--err); }
+button:disabled { opacity: .5; cursor: default; }
+
+.muted { color: var(--muted); }
+.mono { font-family: var(--mono); }
+
+.tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+}
+.tag.ok { color: var(--ok); border-color: var(--ok); }
+.tag.warn { color: var(--warn); border-color: var(--warn); }
+.tag.error { color: var(--err); border-color: var(--err); }
+
+pre.diff {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.45;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  overflow-x: auto;
+  margin: 8px 0 0;
+  white-space: pre;
+}
+pre.diff .add { color: var(--ok); }
+pre.diff .del { color: var(--err); }
+pre.diff .ctx { color: var(--muted); }
+
+.notice { padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; }
+.notice.warn { border-color: var(--warn); color: var(--warn); }
+.notice.error { border-color: var(--err); color: var(--err); }
+.notice.ok { border-color: var(--ok); color: var(--ok); }
+
+.banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.empty { padding: 32px; text-align: center; color: var(--muted); }
+
+/* ---------- forms ---------- */
+
+.field-group {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px 14px;
+  margin: 0 0 14px;
+}
+.field-group > legend {
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.field { display: block; margin-bottom: 10px; }
+.field:last-child { margin-bottom: 0; }
+
+.field-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--fg);
+  font-weight: 500;
+}
+.field-label .req { color: var(--err); }
+.field-hint {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.input {
+  width: 100%;
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+.input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+.form-actions { margin-top: 12px; display: flex; gap: 8px; }
+.form-error { margin-top: 8px; font-size: 13px; color: var(--err); }
+.form-error:empty { display: none; }
+
+.edit-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- about menu ---------- */
+
+.menu { position: relative; flex: none; }
+
+.menu-trigger {
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.menu-trigger:hover,
+.menu-trigger[aria-expanded='true'] {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+/* anchored under the trigger so it never shifts the header layout */
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  width: max-content;
+  min-width: 320px;
+  max-width: min(90vw, 460px);
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--panel, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 12%);
+}
+.menu-panel[hidden] { display: none; }
+.menu-panel .kv { margin-bottom: 6px; align-items: baseline; }
+.menu-panel .kv-label { min-width: 96px; }
+.menu-panel .notice { margin-top: 8px; }
+
+/* the repository is the one value worth clicking */
+.menu-panel a.kv-value {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+  overflow-wrap: anywhere;
+}
+.menu-panel a.kv-value:hover,
+.menu-panel a.kv-value:focus-visible {
+  text-decoration: underline;
+  border-bottom-color: transparent;
+}
+
+/* ---------- card layout ---------- */
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.card-actions { margin-top: 12px; display: flex; gap: 8px; }
+
+.kv { display: flex; gap: 8px; font-size: 13px; margin-bottom: 4px; align-items: baseline; }
+.kv-label { color: var(--muted); min-width: 96px; flex: none; }
+/* min-width:0 so a long path truncates instead of wrapping per character */
+.kv-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}

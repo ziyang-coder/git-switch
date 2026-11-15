@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gs — Git &amp; SSH identities</title>
+<link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">gs</div>
+    <!--
+      Tab order follows the setup dependency chain: a key exists first, an
+      identity uses it, a rule assigns a directory to that identity, and only
+      then can anything be applied.
+    -->
+    <nav class="tabs" role="tablist">
+      <button class="tab" data-view="overview" role="tab">Overview</button>
+      <button class="tab" data-view="keys" role="tab">Keys</button>
+      <button class="tab" data-view="identities" role="tab">Identities</button>
+      <button class="tab" data-view="rules" role="tab">Rules</button>
+      <button class="tab" data-view="preview" role="tab">Preview</button>
+      <button class="tab" data-view="doctor" role="tab">Diagnostics</button>
+      <button class="tab" data-view="snapshot" role="tab">Migrate</button>
+      <button class="tab" data-view="init" role="tab">Setup</button>
+    </nav>
+    <select id="language" class="lang-picker" aria-label="Language"></select>
+    <!--
+      The build, author and licence live behind a menu on the right: a full
+      version string like 0.1.0+29.g4f3a3bf.dirty is too wide to sit in the
+      header next to the tabs.
+    -->
+    <div class="menu">
+      <button class="menu-trigger" id="about-trigger" type="button" aria-haspopup="true" aria-expanded="false">
+        <span data-i18n="web.viewBuildInfo">About</span>
+      </button>
+      <div class="menu-panel" id="about-panel" role="menu" hidden></div>
+    </div>
+    <!--
+      The status text is dynamic, so it must NOT carry data-i18n: translating the
+      chrome would overwrite whatever boot() or toast() last wrote and leave the
+      "loading…" placeholder on screen forever.
+    -->
+    <div class="status" id="status"></div>
+  </header>
+  <main id="main">
+    <div id="home-banner" class="home-banner"></div>
+    <div id="profile-error" class="profile-error"></div>
+  </main>
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Corporate Gitea (non-standard port) alongside a personal GitHub account.
+schemaVersion: 1
+identities:
+  work:
+    user:
+      name: Alex Chen
+      email: alex@company.example
+    sshKey: id_ed25519
+    sites:
+      - host: git.company.example
+        port: 9092
+        alias: work
+  personal:
+    user:
+      name: alexchen
+      email: alex@personal.example
+    sshKey: id_ed25519_github
+    sites:
+      - host: github.com
+        alias: gh
+rules:
+  - dir: ~/code/company
+    identity: work
+    comment: corporate repositories
+  - dir: ~/code/github
+    identity: personal
+  - dir: ~/code/personal
+    identity: personal
+repositories:
+  - path: ~/code/personal/legacy-corporate-tool
+    identity: work
+settings:
+  backupKeep: 20

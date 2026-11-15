@@ -1,0 +1,77 @@
+{
+  "name": "@zhulij/git-switch",
+  "version": "0.1.0",
+  "description": "Multi-identity Git & SSH config manager: map directories to identities, generate includeIf rules and managed SSH config blocks, diagnose auth issues, and migrate everything to a new computer.",
+  "type": "module",
+  "bin": {
+    "gs": "dist/gs.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "gs": "node --experimental-strip-types src/cli.ts",
+    "test": "node scripts/run-tests.mjs \"test/unit/*.test.ts\" \"test/unit/*.test.mjs\" \"test/e2e/*.test.ts\"",
+    "test:unit": "node scripts/run-tests.mjs \"test/unit/*.test.ts\" \"test/unit/*.test.mjs\"",
+    "test:e2e": "node scripts/run-tests.mjs \"test/e2e/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "node scripts/build.mjs",
+    "prepare": "node scripts/build.mjs",
+    "verify:dist": "node scripts/verify-dist.mjs",
+    "audit:coverage": "node scripts/coverage-audit.mjs",
+    "smoke:gui": "node scripts/smoke-gui.mjs",
+    "smoke:gui-browser": "node scripts/smoke-gui-browser.mjs",
+    "smoke:gui-parity": "node scripts/smoke-gui-parity.mjs",
+    "smoke:gui-home": "node scripts/smoke-gui-home.mjs",
+    "check:ui": "node scripts/check-ui-labels.mjs",
+    "check:docs": "node scripts/check-readme.mjs",
+    "check:layout": "node scripts/check-layout.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "prepublish:check": "node scripts/prepublish.mjs",
+    "prepublish:verify": "node scripts/prepublish.mjs --pack"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "git",
+    "ssh",
+    "gitconfig",
+    "ssh-config",
+    "multi-account",
+    "multiple-git-accounts",
+    "identity-management",
+    "includeif",
+    "gitdir",
+    "ssh-key",
+    "devtools",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "CodeMonkeyJust",
+    "url": "https://github.com/CodeMonkeyJust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeMonkeyJust/git-switch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CodeMonkeyJust/git-switch/issues"
+  },
+  "homepage": "https://github.com/CodeMonkeyJust/git-switch#readme"
+}
